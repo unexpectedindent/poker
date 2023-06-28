@@ -1,7 +1,9 @@
 import typing
 
 import cards
+from cards import _calculate_p_win
 from exceptions import ExceededValueError, InsufficientRaiseError, MinRaiseError
+from game import Deal
 
 
 class Player:
@@ -14,24 +16,28 @@ class Player:
     STATUS = {0: 'FOLD', 1: 'ACTIVE', 2: 'ALL-IN'}
 
     def __init__(self, is_bot: bool, player_id: int, wealth: int, name: str = None) -> None:
+        """
+        Статус игрока может принимать целое число от 0 до 2, где
+            0 - игрок не участвует в раздаче (сбросил карты или не имеет
+            фишек на начало раздачи);
+            1 - игрок полноценно участвует в раздаче;
+            2 - игрок находится в состоянии ва-банк.
+
+        :param is_bot:
+        :param player_id:
+        :param wealth:
+        :param name:
+        """
         self.status = self.ACTIVE
         self.is_bot = is_bot
         self.player_id = player_id
         self.name = name
         self._is_dealer = False
         self.wealth = wealth
-        self.round_state = 'wait'
         self.possible_actions = list(self.OPTIONS)
         self.current_bid = 0
         self.role = 'NAN'
         self.hand = None
-
-    # @property
-    # def hand(self):
-    #     return self._get_hand()
-
-    # def _get_hand(self):
-
 
     def give_hand(self, two_cards):
         self.hand = two_cards
@@ -39,7 +45,7 @@ class Player:
     def calculate_p_win(self, players_count, table=None):
         if table:
             table = list(table)
-        return cards._calculate_p_win(list(self.hand), players_count, table, n=100000)
+        return _calculate_p_win(list(self.hand), players_count, table, n=100000)
 
     def set_role(self, role):
         if role in self.ROLES:
@@ -62,7 +68,14 @@ class Player:
     def is_dealer(self):
         return self._is_dealer
 
-    def action(self, deal, act, value=0):
+    def action(self, deal: Deal, act: str, value: int = 0):
+        """
+
+        :param deal: раздача;
+        :param act: действие из списка: 'FOLD', 'CHECK', 'CALL', 'RAISE', 'ALL-IN'
+        :param value:
+        :return:
+        """
         if act == 'FOLD':
             self.status = self.FOLD
             # deal.players.remove(self)
@@ -76,7 +89,7 @@ class Player:
                 self.status = self.ALL_IN
                 deal.active_players_count -= 1
             elif value > self.wealth:
-                raise ExceededValue()
+                raise ExceededValueError()
             elif self.current_bid + value < deal.current_bid + deal.blind:
                 if not (
                         (self.is_little_blind and value == deal.blind // 2)
@@ -96,4 +109,3 @@ class Player:
 
     def __repr__(self):
         return f'Player({self.name})'
-

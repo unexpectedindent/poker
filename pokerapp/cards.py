@@ -4,8 +4,13 @@ from typing import Dict, List, Sequence, Tuple
 
 SUIT = {0: '\u2664', 1: '\u2665', 2: '\u2666', 3: '\u2667'}
 
+SUIT_R = {'\u2664': 0, '\u2665': 1, '\u2666': 2, '\u2667': 3}
+
 VALUE = {-1: 'A', 0: '2', 1: '3', 2: '4', 3: '5', 4: '6', 5: '7',
          6: '8', 7: '9', 8: '10', 9: 'J', 10: 'Q', 11: 'K', 12: 'A'}
+
+VALUE_R = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6,
+         '9': 7, '10': 8, 'J': 9, 'Q': 10, 'K': 11, 'A': 12}
 
 COMBINATION = {
     0: 'Старшая карта',
@@ -366,19 +371,33 @@ def emulate_deal(
         table = ()
     this_table = list(table)
     cards_to_other = [deck[i * 2:i * 2 + 2] for i in range(players_count - 1)]
-    this_table += deck[-5 + table_card_count:]
+    this_table += deck[47 + table_card_count:]
     hands = [list(hand) + this_table] + [i + this_table for i in cards_to_other]
     score = [_calculate_max_value(hand) for hand in hands]
     return int(score.index(max(score)) == 0)
 
 
-def _calculate_p_win(hand: tuple, players_count: int, table: tuple = None, n: int = 100000):
+def _calculate_p_win(hand: tuple | list, players_count: int, table: tuple = None, n: int = 100000):
     score = 0
     for _ in range(n):
         score += emulate_deal(hand, players_count, table)
     return score * 100 / n
 
 
+def main():
+    for n in range(2, 9):
+        for i in range(13):
+            for j in range(i+1, 13):
+                p = _calculate_p_win(((i, 0), (j, 1)), n, None, 100000)
+                print(f'Players: {n}, cards: {Card(i, 0)}{Card(j, 1)}: {p:.04}%')
+                p = _calculate_p_win(((i, 0), (j, 0)), n, None, 100000)
+                print(f'Players: {n}, cards: {Card(i, 0)}{Card(j, 0)}: {p:.04}%')
+            p = _calculate_p_win(((i, 0), (i, 1)), n, None, 100000)
+            print(f'Players: {n}, cards: {Card(i, 0)}{Card(i, 1)}: {p:.04}%')
+
+
 if __name__ == '__main__':
-    p = _calculate_p_win(hand=((0, 0), (2, 1)), players_count=4, table=((5, 2), (5, 0), (11, 3)), n=100000)
-    print(f'{p:.04}%')
+    print(_calculate_p_win(
+        ((0, 0), (5, 1)),
+        2,
+    ))
