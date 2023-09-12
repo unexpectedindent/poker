@@ -1,0 +1,10 @@
+PRE_FLOP = 0
+FLOP = 1
+TURN = 2
+RIVER = 3
+STAGE = {
+    PRE_FLOP: 'PRE-FLOP',
+    FLOP: 'FLOP',
+    TURN: 'TURN',
+    RIVER: 'RIVER',
+}

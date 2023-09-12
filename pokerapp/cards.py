@@ -9,8 +9,10 @@ SUIT_R = {'\u2664': 0, '\u2665': 1, '\u2666': 2, '\u2667': 3}
 VALUE = {-1: 'A', 0: '2', 1: '3', 2: '4', 3: '5', 4: '6', 5: '7',
          6: '8', 7: '9', 8: '10', 9: 'J', 10: 'Q', 11: 'K', 12: 'A'}
 
-VALUE_R = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6,
-         '9': 7, '10': 8, 'J': 9, 'Q': 10, 'K': 11, 'A': 12}
+VALUE_R = {
+    '2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6, '9': 7, '10': 8,
+    'J': 9, 'Q': 10, 'K': 11, 'A': 12
+}
 
 COMBINATION = {
     0: 'Старшая карта',
@@ -24,8 +26,18 @@ COMBINATION = {
     8: 'Стрит-флаш'
 }
 
+
 class Card:
+    """
+    Объект с двумя параметрами - номинал (value) и масть (suit),
+    номинал - число от 0 до 12, где 0 - двойка, 12 - туз,
+    масть - число от 0 до 3.
+    """
     def __init__(self, value: int, suit: int) -> None:
+        """
+        :param value: номинал карты - число от 0 до 12, где 0 - двойка, 12 - туз.
+        :param suit: масть карты - число от 0 до 3.
+        """
         self.value = value
         self.suit = suit
 
@@ -53,9 +65,16 @@ class Cards:
         self._cards = cards
 
     def __repr__(self) -> str:
+        """
+        Визуальное представление карт:
+         ____   ____
+        |10♥ | |A♧  |
+        |    | |    |
+        |_10♥| |__A♧|
+        """
         count = len(self._cards)
         upper_signs = [
-            str(card) + ' '  if len(str(card)) == 2 else str(card)
+            str(card) + ' ' if len(str(card)) == 2 else str(card)
             for card in self._cards
         ]
         lower_signs = [
@@ -83,9 +102,10 @@ def generate_deck(without: Sequence[Card]) -> List[Card]:
     random.shuffle(deck)
     return deck
 
+
 def _generate_deck(
-    without: Sequence[Tuple[int]] = None
-) -> List[Tuple[int]]:
+    without: Sequence[tuple[int, int]] = []
+) -> list[tuple[int, int]]:
     """
     Более быстрая функция для генерации колоды - принимает и генерирует не
     объекты карт, а набор кортежей формата (<значение>, <масть>)
@@ -124,7 +144,7 @@ def _has_straight_combination(
         ):
             return [True, ordered_card_values[bottom_card]]
     low_straight = {0, 1, 2, 3, 12}
-    return  [low_straight == set(ordered_card_values) & low_straight, -1]
+    return [low_straight == set(ordered_card_values) & low_straight, -1]
 
 
 def _extract_flush(
@@ -134,6 +154,7 @@ def _extract_flush(
     """
 
     :param cards:
+    :param suits:
     :return:
     """
     count = len(cards[0])
@@ -142,15 +163,15 @@ def _extract_flush(
 
 
 def _high_card_subrank(
-    ordered_card_values: List[int], *args
-) -> List[int]:
+    ordered_card_values: list[int, int, int, int, int, int, int], *args
+) -> list[int, int, int, int, int]:
     return ordered_card_values[::-1][:5]
 
 
 def _pair_subrank(
-    ordered_card_values: List[int],
-    grouped_values: List[int], *args
-) -> list:
+    ordered_card_values: list[int, int, int, int, int, int, int],
+    grouped_values: list[int, int, int, int, int, int], *args
+) -> list[int, tuple[int, int, int]]:
     """
 
     :param ordered_card_values:
@@ -165,9 +186,9 @@ def _pair_subrank(
 
 
 def _two_pairs_subrank(
-    ordered_card_values: List[int],
-    grouped_values: List[int], *args
-) -> list:
+    ordered_card_values: list[int, int, int, int, int, int, int],
+    grouped_values: list[int, int, int, int, int], *args
+) -> list[tuple[int, int], int]:
     """
 
     :param ordered_card_values:
@@ -189,9 +210,9 @@ def _two_pairs_subrank(
 
 
 def _triple_subrank(
-    ordered_card_values: List[int],
-    grouped_values: List[int], *args
-) -> list:
+    ordered_card_values: list[int, int, int, int, int, int, int],
+    grouped_values: list[int, int, int, int, int], *args
+) -> list[int, tuple[int, int]]:
     """
 
     :param ordered_card_values:
@@ -207,9 +228,9 @@ def _triple_subrank(
 
 
 def _full_house_subrank(
-    ordered_card_values: List[int],
-    grouped_values: List[int], *args
-) -> List[int]:
+    ordered_card_values: list[int, int, int, int, int, int, int],
+    grouped_values: list[int, int, int] | list[int, int, int, int], *args
+) -> list[int, int]:
     """
 
     :param ordered_card_values:
@@ -233,9 +254,10 @@ def _full_house_subrank(
 
 
 def _carre_subrank(
-    ordered_card_values: List[int],
-    grouped_values: List[int], *args
-) -> List[int]:
+    ordered_card_values: list[int, int, int, int, int, int, int],
+    grouped_values: list[int, int, int, int] | list[int, int, int] | list[int, int],
+    *args
+) -> list[int, int]:
     if grouped_values[-1] == 4:
         return [ordered_card_values[-1], ordered_card_values[2]]
     carre_index = grouped_values.index(4)
@@ -260,13 +282,20 @@ def _straight_subrank(
     return [straight_rank]
 
 
-def _calculate_max_value(seven_cards: List[Tuple[int]]) -> tuple:
+def _calculate_max_value(
+        seven_cards: Sequence[tuple[int, int]]
+) -> tuple:
     """
-
-    :param seven_cards:
+    Функция принимает на вход комбинацию из 7 карт и возвращает ранг
+    страршей комбинации из 5 карт.
+    :param seven_cards: входящая комбинация из 7 карт, где карта - кортеж из
+    целых чисел: перове число от 0 до 12 - номинал карты, второе - от 0 до
+    3 - масть карты.
     :return:
     """
     seven_cards = sorted(seven_cards, key=lambda x: x[0])
+
+    # Список, содержащий два списка: номиналов карт и соответствующих мастей
     cards = [
         [card[0] for card in seven_cards], [card[1] for card in seven_cards]
     ]
@@ -306,7 +335,12 @@ def _calculate_max_value(seven_cards: List[Tuple[int]]) -> tuple:
         7: _carre_subrank,
         8: _straight_subrank
     }
-    return tuple([main_rank] + def_subrank[main_rank](cards[0], card_values_count, straight_rank))
+    return tuple(
+        [main_rank]
+        + def_subrank[main_rank](
+            cards[0], card_values_count, straight_rank
+        )
+    )
 
 
 def rank_to_cards(score: tuple) -> str:
@@ -319,14 +353,14 @@ def rank_to_cards(score: tuple) -> str:
         return info + ': ' + VALUE[score[1][1]] * 2 + VALUE[score[1][0]] * 2 + VALUE[score[2]]
     if score[0] == 3:
         return info + ': ' + VALUE[score[1]] * 3 + ''.join([VALUE[i] for i in score[2][::-1]])
-    if score[0] % 4 == 0:
-        return info + ': ' + ''.join([VALUE[i] for i in range(score[1], score[1] + 5)])
     if score[0] == 6:
         return info + ': ' + VALUE[score[1]] * 3 + VALUE[score[2]] * 2
-    return info + ': ' + VALUE[score[1]] * 4 + VALUE[score[2]]
+    if score[0] == 7:
+        return info + ': ' + VALUE[score[1]] * 4 + VALUE[score[2]]
+    return info + ': ' + ''.join([VALUE[i] for i in range(score[1], score[1] + 5)])
 
 
-def get_stats(n) -> dict:
+def get_stats(n: int) -> dict:
     names = {
         0: 'Старшая карта',
         1: 'Пара',
@@ -358,9 +392,9 @@ def get_stats(n) -> dict:
 
 
 def emulate_deal(
-        hand: Tuple[Tuple[int]],
+        hand: Tuple[Tuple[int, int]],
         players_count: int,
-        table: Tuple[Tuple[int]] = None
+        table: Tuple[Tuple[int, int]] = None
 ):
     if table:
         deck = _generate_deck(list(hand) + list(table))
@@ -397,7 +431,6 @@ def main():
 
 
 if __name__ == '__main__':
-    print(_calculate_p_win(
-        ((0, 0), (5, 1)),
-        2,
+    print(_calculate_max_value(
+        ((1, 0), (1, 1), (1, 2), (1, 3), (0, 0), (3, 1), (7, 3))
     ))

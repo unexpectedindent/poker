@@ -7,7 +7,7 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-LOG_FILENAME = 'logs.log'
+LOG_FILENAME = 'game.log'
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -20,12 +20,12 @@ LOGGING_CONFIG = {
         'extended': {
             'format': (
                 '%(asctime)s, '
-                '%(filename)s, '
-                '%(funcName)s, '
+                '%(name)s, '
+                # '%(filename)s, '
+                # '%(funcName)s, '
                 '%(levelname)s, '
-                '%(lineno)d, '
-                '%(message)s, '
-                '%(name)s'
+                # '%(lineno)d, '
+                '%(message)s'
             ),
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },

@@ -1,0 +1,3 @@
+FOLD = 0
+ACTIVE = 1
+ALL_IN = 2
